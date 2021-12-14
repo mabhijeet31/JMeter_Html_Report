@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-4.0.0.xsd">
+   <modelVersion>4.0.0</modelVersion>
+   <groupId>com.jmeter.report</groupId>
+   <artifactId>Jmeter-report</artifactId>
+   <version>0.0.1-SNAPSHOT</version>
+   <packaging>jar</packaging>
+   <name>maven-jmeter-demo</name>
+   <url>http://maven.apache.org</url>
+   <properties>
+      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+   </properties>
+  <build>
+      <plugins>
+         <plugin>
+            <groupId>com.lazerycode.jmeter</groupId>
+            <artifactId>jmeter-maven-plugin</artifactId>
+            <version>3.5.0</version>
+            <executions>     
+
+			   <execution>
+                  <id>configuration</id>
+                  <goals>
+                     <goal>configure</goal>
+                  </goals>
+               </execution>			
+               <execution>
+                  <id>jmeter-tests</id>
+                  <phase>verify</phase>
+                  <goals>
+                     <goal>jmeter</goal>
+                  </goals>
+               </execution>
+            </executions>
+            <configuration>
+			   <generateReports>false</generateReports>
+               <ignoreResultFailures>true</ignoreResultFailures>
+               <testResultsTimestamp>false</testResultsTimestamp>
+               <propertiesUser>
+                  <jmeter.save.saveservice.output_format>xml</jmeter.save.saveservice.output_format>
+				  
+                  <jmeter.save.saveservice.bytes>true</jmeter.save.saveservice.bytes>
+                  <jmeter.save.saveservice.label>true</jmeter.save.saveservice.label>
+                  <jmeter.save.saveservice.latency>true</jmeter.save.saveservice.latency>
+                  <jmeter.save.saveservice.response_code>true</jmeter.save.saveservice.response_code>
+                  <jmeter.save.saveservice.request_message>true</jmeter.save.saveservice.request_message>
+                  <jmeter.save.saveservice.samplerData>true</jmeter.save.saveservice.samplerData>
+                  <jmeter.save.saveservice.url>true</jmeter.save.saveservice.url>
+                  <jmeter.save.saveservice.responseHeaders>true</jmeter.save.saveservice.responseHeaders>
+                  <jmeter.save.saveservice.response_message>true</jmeter.save.saveservice.response_message>
+                  <jmeter.save.saveservice.successful>true</jmeter.save.saveservice.successful>
+                  <jmeter.save.saveservice.thread_counts>true</jmeter.save.saveservice.thread_counts>
+                  <jmeter.save.saveservice.thread_name>true</jmeter.save.saveservice.thread_name>
+                  <jmeter.save.saveservice.time>true</jmeter.save.saveservice.time>
+                  <jmeter.save.saveservice.response_data.on_error>true</jmeter.save.saveservice.response_data.on_error>
+                  <jmeter.save.saveservice.sent_bytes>true</jmeter.save.saveservice.sent_bytes>
+                  <jmeter.save.saveservice.connect_time>true</jmeter.save.saveservice.connect_time>
+                  <jmeter.save.saveservice.requestHeaders>true</jmeter.save.saveservice.requestHeaders>
+				  <jmeter.save.saveservice.response_data>true</jmeter.save.saveservice.response_data>
+                  <jmeter.save.saveservice.encoding>true</jmeter.save.saveservice.encoding>
+                  <jmeter.save.saveservice.hostname>true</jmeter.save.saveservice.hostname>
+				  
+				  
+				  
+               </propertiesUser>
+			   
+		<!--	   <proxyConfig>
+                  <host>195.233.25.20</host>
+                  <port>8080</port>
+                           
+              </proxyConfig> -->
+			  
+            </configuration>
+         </plugin>
+		 
+         <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>xml-maven-plugin</artifactId>
+            <version>1.0.2</version>
+            <executions>
+               <execution>
+                  <phase>verify</phase>
+                  <goals>
+                     <goal>transform</goal>
+                  </goals>
+               </execution>
+            </executions>
+			
+            <configuration>
+               <transformationSets>
+                  <transformationSet>
+                     <dir>${project.build.directory}/jmeter/results</dir>
+					
+                    <stylesheet>${project.basedir}/src/test/resources/jmeter-results-report_21.xsl</stylesheet> 
+					 
+					 <!--  <stylesheet>${project.basedir}/src/test/resources/jmeter-results-detail-report_21.xsl</stylesheet> -->
+                     <outputDir>${project.build.directory}/jmeter/results</outputDir>
+                     <fileMappers>
+                        <fileMapper implementation="org.codehaus.plexus.components.io.filemappers.RegExpFileMapper">
+                           <pattern>(.*?)\s(.*?)</pattern>
+                           <replacement>$1$2</replacement>
+                           <replaceAll>true</replaceAll>
+                        </fileMapper>
+                        <fileMapper implementation="org.codehaus.plexus.components.io.filemappers.FileExtensionMapper">
+                           <targetExtension>.html</targetExtension>
+                        </fileMapper>
+                     </fileMappers>
+                  </transformationSet>
+               </transformationSets>
+            </configuration>
+         </plugin>
+		 
+         <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+			
+            <executions>
+               <execution>
+                  <phase>verify</phase>
+                  <configuration>
+                     <target>
+					 <echo> ******************************** ${basedir} </echo>
+                        <delete dir="${basedir}/target/jmeter/results/dashboard" />
+						
+                        <mkdir dir="${basedir}/target/jmeter/results/dashboard" />
+                        <copy file="${basedir}/src/test/resources/reportgenerator.properties" tofile="${basedir}/target/jmeter/bin/reportgenerator.properties" />
+                        <copy todir="${basedir}/target/jmeter/bin/report-template">
+                           <fileset dir="${basedir}/src/test/resources/report-template" />
+                        </copy>
+                        <java jar="${basedir}/target/jmeter/bin/ApacheJMeter-3.3.jar" fork="true">
+                           <arg value="-g" />
+                           <arg value="${basedir}/target/jmeter/results/*.jtl" />
+                           <arg value="-o" />
+                           <arg value="${basedir}/target/jmeter/results/dashboard/" />
+                        </java>
+                     </target>
+                  </configuration>
+                  <goals>
+                     <goal>run</goal>
+                  </goals>
+               </execution>
+            </executions>
+         </plugin>
+      </plugins>
+   </build>
+</project>
+
